@@ -12,32 +12,29 @@ double Kb = 8.6173324*pow(10,-5);
 double T = 600;
 double N = 6.02140857*pow(10,23);
 double V = 1;
-double Etheor = 3/2*Kb*T;
+double Etheor = 3*Kb*T/2;
 
 //Method declaration.
 double MaxwellBoltzmann(double E);
 double MCMC(int N_points);
-double rms();
+double rms(int N_runs);
 
 //Main.
 int main(){
-    cout<<MaxwellBoltzmann(0.3)<<endl;
-    cout<<endl;
     for(int i=2; i<9; i++){
         int N_points = pow(10,i);
         cout<<i<<","<<MCMC(N_points)<<endl;
     }
-    cout<<endl;
-    cout<<3/2*Kb*T<<endl;
     
     cout<<endl;
-    cout<<rms()<<endl;
+    cout<<rms(500)<<endl;
     return 0;
 }
 
 //Methods.
 double MaxwellBoltzmann(double E){
-    double r = (2/sqrt(M_PI))*(N/V)*(sqrt(E)/pow(Kb*T,3/2))*exp(-(E/(Kb*T)));
+    double a = Kb*T;
+    double r = (2/sqrt(M_PI))*(N/V)*(sqrt(E)/sqrt(pow(a,3)))*exp(-(E/a));
     return r;
 }
 
@@ -71,11 +68,16 @@ double MCMC(int N_points){
     return sum/double(N_points);
 }
 
-double rms(){
+double rms(int N_runs){
+    ofstream outfile;
+    outfile.open("data.dat");
     double summ = 0;
-    for(int i=0; i<500; i++){
+    for(int i=1; i<=N_runs; i++){
         double Ei = MCMC(1); 
-        summ += pow(Ei-Etheor,2);
+        double deltaE = Ei-Etheor;
+        summ += pow(deltaE,2);
+        outfile<<deltaE<<", "<<sqrt(summ/double(i))<<endl;
     }
-    return sqrt(summ/500.0);
+    outfile.close();
+    return sqrt(summ/double(N_runs));
 }
