@@ -16,18 +16,27 @@ double Etheor = 3*Kb*T/2;
 
 //Method declaration.
 double MaxwellBoltzmann(double E);
-double MCMC(int N_points);
-double rms(int N_runs);
+double MCMC(int N_points, double deltax_max);
 
 //Main.
 int main(){
-    for(int i=2; i<9; i++){
-        int N_points = pow(10,i);
-        cout<<i<<","<<MCMC(N_points)<<endl;
+    ofstream outfile;
+    outfile.open("data.dat");
+    double max = 0.001;
+    for(int i=1; i<= 30; i++){
+        outfile<<max<<", "<<MCMC(500, max)<<endl;
+        max += 0.01;
     }
+    outfile.close();
     
-    cout<<endl;
-    cout<<rms(500)<<endl;
+    outfile.open("data2.dat");
+    double optimal_max = 0.121;
+    int N_points;
+    for(int i=2; i<= 8; i++){
+        N_points = pow(10,i);
+        outfile<<N_points<<", "<<MCMC(N_points, optimal_max)<<endl;
+    }
+    outfile.close();
     return 0;
 }
 
@@ -38,12 +47,11 @@ double MaxwellBoltzmann(double E){
     return r;
 }
 
-double MCMC(int N_points){
+double MCMC(int N_points, double deltax_max){
     double sum = 0;
-    double deltax_max = 0.001;
+    double sum_rms = 0;
     double x = 0.3;
     double p = MaxwellBoltzmann(x);
-    sum += x;
     for(int i=0; i<N_points; i++){
         double x_0 = x;
         double u = (-2)*(double(rand())/double(RAND_MAX))-1;
@@ -63,21 +71,12 @@ double MCMC(int N_points){
                 x = x_0;
             }
         }
+        sum += x;
+        double Ei = sum/double(i+1);
+        double resta = Ei - Etheor;
+        sum_rms += pow(resta,2);
     }
-    sum += x;
-    return sum/double(N_points);
-}
-
-double rms(int N_runs){
-    ofstream outfile;
-    outfile.open("data.dat");
-    double summ = 0;
-    for(int i=1; i<=N_runs; i++){
-        double Ei = MCMC(1); 
-        double deltaE = Ei-Etheor;
-        summ += pow(deltaE,2);
-        outfile<<deltaE<<", "<<sqrt(summ/double(i))<<endl;
-    }
-    outfile.close();
-    return sqrt(summ/double(N_runs));
+    double rms = sqrt(sum_rms/double(N_points));
+    double Eprom = double(sum)/double(N_points);
+    return rms;
 }
